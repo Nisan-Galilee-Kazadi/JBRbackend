@@ -5,7 +5,7 @@ services:
     env: node
     plan: free
     buildCommand: npm install
-    startCommand: node index.js
+    startCommand: node app.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -14,8 +14,6 @@ services:
         value: 5000
       - key: MONGO_URI
         sync: false  # Will be set in Render dashboard
+      - key: LOG_LEVEL
+        value: info
     autoDeploy: yes
-    
-  # MongoDB Atlas (External Database)
-  # Note: MongoDB Atlas should be configured separately
-  # This is just a reference for the database connection
