@@ -32,7 +32,6 @@ dotenv.config();
 const fetchOGImage = async (url) => {
     return new Promise((resolve) => {
         if (!url) return resolve("");
-
         const protocol = url.startsWith('https') ? require('https') : require('http');
         const timeout = 6000;
 
@@ -47,9 +46,9 @@ const fetchOGImage = async (url) => {
             let data = '';
             res.on('data', (chunk) => {
                 data += chunk;
-                let match = data.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-                if (!match) match = data.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-                if (!match) match = data.match(/<meta[^>]+name=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+                let match = data.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                    || data.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+                    || data.match(/<meta[^>]+name=["']og:image["'][^>]+content=["']([^"']+)["']/i);
 
                 if (match && match[1]) {
                     resolve(match[1]);
@@ -59,24 +58,18 @@ const fetchOGImage = async (url) => {
 
                 if (data.length > 300000) req.destroy();
             });
+
             res.on('end', () => {
                 if (!data) return resolve("");
+                let match = data.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                    || data.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+                    || data.match(/<meta[^>]+name=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                    || data.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']og:image["']/i)
+                    || data.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+                    || data.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
+                    || data.match(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i);
 
-                let match = data.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-                if (!match) match = data.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-                if (!match) match = data.match(/<meta[^>]+name=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-                if (!match) match = data.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']og:image["']/i);
-
-                if (!match) match = data.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
-                if (!match) match = data.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
-
-                if (!match) match = data.match(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i);
-
-                if (match && match[1]) {
-                    resolve(match[1]);
-                } else {
-                    resolve("");
-                }
+                resolve(match && match[1] ? match[1] : "");
             });
         });
 
@@ -119,14 +112,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Database connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/jbr', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-}).then(() => {
-    console.log('Connected to MongoDB');
-}).catch((err) => {
-    console.error('MongoDB connection error:', err);
-});
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/jbr')
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => console.error('MongoDB connection error:', err));
 
 // --- POST ROUTES ---
 app.get('/api/posts', async (req, res) => {
@@ -140,6 +128,8 @@ app.get('/api/posts', async (req, res) => {
 
 app.post('/api/posts', async (req, res) => {
     const post = new Post(req.body);
+    if (!post.reactions) post.reactions = {};
+    if (!post.comments) post.comments = [];
     try {
         const newPost = await post.save();
         res.status(201).json(newPost);
@@ -151,14 +141,12 @@ app.post('/api/posts', async (req, res) => {
 app.post('/api/posts/:id/react', async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
+        if (!post.reactions) post.reactions = {};
         const { type } = req.body;
-        if (post.reactions[type] !== undefined) {
-            post.reactions[type] += 1;
-            await post.save();
-            res.json(post);
-        } else {
-            res.status(400).json({ message: 'Invalid reaction type' });
-        }
+        if (post.reactions[type] === undefined) post.reactions[type] = 0;
+        post.reactions[type] += 1;
+        await post.save();
+        res.json(post);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -167,6 +155,7 @@ app.post('/api/posts/:id/react', async (req, res) => {
 app.post('/api/posts/:id/comment', async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
+        if (!post.comments) post.comments = [];
         const { user, text } = req.body;
         post.comments.push({ user, text, createdAt: new Date() });
         await post.save();
@@ -181,15 +170,13 @@ app.post('/api/visitors', async (req, res) => {
     try {
         const { name } = req.body;
         let visitor = await Visitor.findOne({ name });
-
         if (visitor) {
             visitor.lastVisit = new Date();
             await visitor.save();
         } else {
-            visitor = new Visitor({ name });
+            visitor = new Visitor({ name, commentsCount: 0, likesCount: 0 });
             await visitor.save();
         }
-
         res.json(visitor);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -209,14 +196,10 @@ app.post('/api/visitors/:name/activity', async (req, res) => {
     try {
         const { name } = req.params;
         const { type } = req.body;
-
         const visitor = await Visitor.findOne({ name });
         if (visitor) {
-            if (type === 'comment') {
-                visitor.commentsCount += 1;
-            } else if (type === 'like') {
-                visitor.likesCount += 1;
-            }
+            if (type === 'comment') visitor.commentsCount = (visitor.commentsCount || 0) + 1;
+            else if (type === 'like') visitor.likesCount = (visitor.likesCount || 0) + 1;
             visitor.lastVisit = new Date();
             await visitor.save();
             res.json(visitor);
@@ -250,14 +233,8 @@ app.post('/api/news', async (req, res) => {
 
 app.put('/api/news/:id', async (req, res) => {
     try {
-        const updatedNews = await News.findByIdAndUpdate(
-            req.params.id, 
-            req.body, 
-            { new: true, runValidators: true }
-        );
-        if (!updatedNews) {
-            return res.status(404).json({ message: 'Actualité non trouvée' });
-        }
+        const updatedNews = await News.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!updatedNews) return res.status(404).json({ message: 'Actualité non trouvée' });
         res.json(updatedNews);
     } catch (err) {
         res.status(400).json({ message: err.message });
@@ -267,9 +244,7 @@ app.put('/api/news/:id', async (req, res) => {
 app.delete('/api/news/:id', async (req, res) => {
     try {
         const deletedNews = await News.findByIdAndDelete(req.params.id);
-        if (!deletedNews) {
-            return res.status(404).json({ message: 'Actualité non trouvée' });
-        }
+        if (!deletedNews) return res.status(404).json({ message: 'Actualité non trouvée' });
         res.json({ message: 'Actualité supprimée avec succès' });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -323,9 +298,7 @@ app.patch('/api/admin/messages/:id/status', async (req, res) => {
             message.status = req.body.status || 'read';
             await message.save();
             res.json(message);
-        } else {
-            res.status(404).json({ message: 'Message not found' });
-        }
+        } else res.status(404).json({ message: 'Message not found' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -334,9 +307,7 @@ app.patch('/api/admin/messages/:id/status', async (req, res) => {
 app.delete('/api/admin/messages/:id', async (req, res) => {
     try {
         const deletedMessage = await Message.findByIdAndDelete(req.params.id);
-        if (!deletedMessage) {
-            return res.status(404).json({ message: 'Message non trouvé' });
-        }
+        if (!deletedMessage) return res.status(404).json({ message: 'Message non trouvé' });
         res.json({ message: 'Message supprimé avec succès' });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -346,14 +317,10 @@ app.delete('/api/admin/messages/:id', async (req, res) => {
 app.put('/api/admin/messages/:id', async (req, res) => {
     try {
         const message = await Message.findById(req.params.id);
-        if (!message) {
-            return res.status(404).json({ message: 'Message non trouvé' });
-        }
-        
+        if (!message) return res.status(404).json({ message: 'Message non trouvé' });
         if (req.body.starred !== undefined) message.starred = req.body.starred;
         if (req.body.archived !== undefined) message.archived = req.body.archived;
         if (req.body.status !== undefined) message.status = req.body.status;
-        
         const updatedMessage = await message.save();
         res.json(updatedMessage);
     } catch (err) {
@@ -361,7 +328,7 @@ app.put('/api/admin/messages/:id', async (req, res) => {
     }
 });
 
-// --- HEALTH CHECK ENDPOINT ---
+// --- HEALTH CHECK ---
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'OK',
@@ -371,16 +338,16 @@ app.get('/health', (req, res) => {
     });
 });
 
-// --- STATS ROUTE ---
+// --- STATS ---
 app.get('/api/admin/stats', async (req, res) => {
     try {
         const postCount = await Post.countDocuments();
         const newsCount = await News.countDocuments();
         const partnerCount = await Partner.countDocuments();
-
         const allPosts = await Post.find();
-        const totalLikes = allPosts.reduce((acc, p) => acc + (p.reactions?.likes || 0), 0);
-        const totalComments = allPosts.reduce((acc, p) => acc + (p.comments?.length || 0), 0);
+
+        const totalLikes = allPosts.reduce((acc, p) => acc + ((p.reactions?.likes) || 0), 0);
+        const totalComments = allPosts.reduce((acc, p) => acc + ((p.comments?.length) || 0), 0);
 
         res.json({
             posts: postCount,
