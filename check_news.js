@@ -1,7 +1,7 @@
 
 const http = require('http');
 
-http.get('http://localhost:5000/api/admin/aggregate-news', (res) => {
+http.get('http://jbrbackend.onrender.com/api/admin/aggregate-news', (res) => {
     let data = '';
     res.on('data', (chunk) => data += chunk);
     res.on('end', () => {
