@@ -338,29 +338,6 @@ app.get('/health', (req, res) => {
     });
 });
 
-// --- STATS ---
-app.get('/api/admin/stats', async (req, res) => {
-    try {
-        const postCount = await Post.countDocuments();
-        const newsCount = await News.countDocuments();
-        const partnerCount = await Partner.countDocuments();
-        const allPosts = await Post.find();
-
-        const totalLikes = allPosts.reduce((acc, p) => acc + ((p.reactions?.likes) || 0), 0);
-        const totalComments = allPosts.reduce((acc, p) => acc + ((p.comments?.length) || 0), 0);
-
-        res.json({
-            posts: postCount,
-            news: newsCount,
-            partners: partnerCount,
-            engagement: totalLikes + totalComments,
-            recentActivity: await Post.find().sort({ createdAt: -1 }).limit(5)
-        });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

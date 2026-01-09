@@ -3,17 +3,24 @@ const router = express.Router();
 const catchAsync = require('../middleware/catchAsync');
 const { aggregateNewsFromFeeds } = require('../newsAggregator');
 const News = require('../models/News');
+const adminController = require('../controllers/adminController');
+const logger = require('../middleware/logger');
+
+// Route pour les statistiques admin
+router.get('/stats', catchAsync(adminController.getStats));
 
 // Route pour agréger les actualités depuis les feeds RSS
 router.get('/aggregate-news', catchAsync(async (req, res) => {
     try {
         const aggregatedNews = await aggregateNewsFromFeeds();
+        logger.info(`Aggregated ${aggregatedNews.length} news items`);
         res.status(200).json({
             success: true,
             count: aggregatedNews.length,
             data: aggregatedNews
         });
     } catch (error) {
+        logger.error('Error aggregating news:', error);
         res.status(500).json({
             success: false,
             error: error.message
