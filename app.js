@@ -14,7 +14,6 @@ const newsRoutes = require('./routes/news');
 const visitorRoutes = require('./routes/visitors');
 const messageRoutes = require('./routes/messages');
 const partnerRoutes = require('./routes/partners');
-const adminRoutes = require('./routes/admin');
 const healthController = require('./controllers/healthController');
 
 const app = express();
@@ -45,7 +44,6 @@ app.use('/api/posts', postRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/visitors', visitorRoutes);
 app.use('/api/partners', partnerRoutes);
-app.use('/api/admin', adminRoutes);
 app.use('/api', messageRoutes);
 
 // 404 handler
