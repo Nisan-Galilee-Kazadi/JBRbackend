@@ -143,6 +143,21 @@ app.post('/api/posts/:id/comment', async (req, res) => {
     res.json(post);
 });
 
+app.delete('/api/posts/:id', async (req, res) => {
+    const post = await Post.findByIdAndDelete(req.params.id);
+    if (!post) {
+        return res.status(404).json({ 
+            success: false, 
+            error: 'Post not found',
+            code: 404 
+        });
+    }
+    res.json({ 
+        success: true, 
+        message: 'Post deleted successfully' 
+    });
+});
+
 /* =========================
    VISITORS
 ========================= */
