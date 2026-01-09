@@ -59,7 +59,7 @@ router.post('/verify-source', catchAsync(async (req, res) => {
             verified: true,
             domain: domain,
             reputation: isTrusted ? 'high' : 'medium',
-            sslValid: url.startsWith('httpss://'),
+            sslValid: url.startsWith('https://'),
             itemCount: feed.items.length,
             lastUpdated: feed.lastBuildDate || feed.pubDate
         });
@@ -69,7 +69,7 @@ router.post('/verify-source', catchAsync(async (req, res) => {
             verified: false,
             domain: new URL(url).hostname,
             reputation: 'low',
-            sslValid: url.startsWith('httpss://'),
+            sslValid: url.startsWith('https://'),
             error: error.message
         });
     }

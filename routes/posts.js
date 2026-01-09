@@ -7,5 +7,6 @@ router.get('/', catchAsync(postController.getAllPosts));
 router.post('/', catchAsync(postController.createPost));
 router.post('/:id/react', catchAsync(postController.reactToPost));
 router.post('/:id/comment', catchAsync(postController.commentOnPost));
+router.delete('/:id', catchAsync(postController.deletePost));
 
 module.exports = router;

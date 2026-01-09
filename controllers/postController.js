@@ -65,6 +65,21 @@ const postController = {
       success: true,
       data: post
     });
+  },
+
+  deletePost: async (req, res, next) => {
+    const { id } = req.params;
+    
+    const post = await Post.findByIdAndDelete(id);
+    if (!post) {
+      return next(new AppError('Post not found', 404));
+    }
+    
+    logger.info(`Deleted post: ${id}`);
+    res.status(200).json({
+      success: true,
+      message: 'Post deleted successfully'
+    });
   }
 };
 

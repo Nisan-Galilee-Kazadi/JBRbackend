@@ -8,10 +8,10 @@ const aggregateNewsFromFeeds = async () => {
     // Sources d'actualités foot
     const feeds = [
         { name: 'RADIO OKAPI (direct)', url: 'https://www.radiookapi.net/rss.xml', category: 'RDC' },
-        { name: 'FOOT.CD (direct)', url: 'httpss://foot.cd/feed/', category: 'RDC' },
-        { name: 'L\'ÉQUIPE (direct)', url: 'httpss://www.lequipe.fr/rss/actu_rss_Football.xml', category: 'International' },
-        { name: 'LEOPARDS FOOT (direct)', url: 'httpss://www.leopardsfoot.com/feed/', category: 'Léopards' },
-        { name: 'MERCATO (search)', url: 'httpss://news.google.com/rss/search?q=football+top+transferts+Ligue+1+Mercato&hl=fr&gl=FR&ceid=FR:fr', category: 'Mercato' }
+        { name: 'FOOT.CD (direct)', url: 'https://foot.cd/feed/', category: 'RDC' },
+        { name: 'L\'ÉQUIPE (direct)', url: 'https://www.lequipe.fr/rss/actu_rss_Football.xml', category: 'International' },
+        { name: 'LEOPARDS FOOT (direct)', url: 'https://www.leopardsfoot.com/feed/', category: 'Léopards' },
+        { name: 'MERCATO (search)', url: 'https://news.google.com/rss/search?q=football+top+transferts+Ligue+1+Mercato&hl=fr&gl=FR&ceid=FR:fr', category: 'Mercato' }
     ];
 
     const footballKeywords = ['football', 'foot', 'ballon', 'mercato', 'ligue', 'match', 'joueur', 'club', 'fifa', 'caf', 'leopards', 'congolais', 'transfert', 'vitesse', 'but', 'attaquant', 'stade'];
