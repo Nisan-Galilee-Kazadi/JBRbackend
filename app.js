@@ -48,11 +48,14 @@ app.use('/api/partners', partnerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', messageRoutes);
 
-// 404 handler
+// 404 handler - Always return JSON
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
-    error: `Route ${req.originalUrl} not found`
+    error: `Route ${req.originalUrl} not found`,
+    code: 404,
+    method: req.method,
+    timestamp: new Date().toISOString()
   });
 });
 

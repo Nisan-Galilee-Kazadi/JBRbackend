@@ -5,8 +5,15 @@ const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
-  logger.error(err);
+  // Log error with context
+  logger.error({
+    error: err,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    timestamp: new Date().toISOString()
+  });
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
@@ -16,7 +23,8 @@ const errorHandler = (err, req, res, next) => {
 
   // Mongoose duplicate key
   if (err.code === 11000) {
-    const message = 'Duplicate field value entered';
+    const field = Object.keys(err.keyValue)[0];
+    const message = `Duplicate field value: ${field}`;
     error = new AppError(message, 400);
   }
 
@@ -38,10 +46,21 @@ const errorHandler = (err, req, res, next) => {
     error = new AppError(message, 401);
   }
 
+  // Rate limiting
+  if (err.status === 429) {
+    const message = 'Too many requests, please try again later';
+    error = new AppError(message, 429);
+  }
+
+  // Ensure JSON response for all errors
   res.status(error.statusCode || 500).json({
     success: false,
     error: error.message || 'Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    code: error.statusCode || 500,
+    ...(process.env.NODE_ENV === 'development' && { 
+      stack: err.stack,
+      details: err
+    })
   });
 };
 
