@@ -33,7 +33,7 @@ The `render.yaml` file will configure:
 ### 4. CORS Configuration
 Update your frontend to use the Render backend URL:
 ```
-const API_URL = 'https://your-backend-name.onrender.com/api'
+const API_URL = 'httpss://your-backend-name.onrender.com/api'
 ```
 
 ## Important Notes

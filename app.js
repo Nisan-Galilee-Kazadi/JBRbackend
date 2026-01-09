@@ -91,7 +91,7 @@ const startServer = async () => {
     // Start server
     app.listen(config.port, () => {
       logger.info(`🚀 Server running on port ${config.port} in ${config.env} mode`);
-      logger.info(`📊 Health check available at http://localhost:${config.port}/health`);
+      logger.info(`📊 Health check available at https://localhost:${config.port}/health`);
     });
   } catch (error) {
     logger.error('❌ Failed to start server:', error.message);

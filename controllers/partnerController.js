@@ -21,6 +21,46 @@ const partnerController = {
       success: true,
       data: savedPartner
     });
+  },
+
+  getPartnerById: async (req, res, next) => {
+    const partner = await Partner.findById(req.params.id);
+    if (!partner) {
+      return next(new AppError('Partner not found', 404));
+    }
+    logger.info(`Fetched partner: ${partner._id}`);
+    res.status(200).json({
+      success: true,
+      data: partner
+    });
+  },
+
+  updatePartner: async (req, res, next) => {
+    const partner = await Partner.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!partner) {
+      return next(new AppError('Partner not found', 404));
+    }
+    logger.info(`Updated partner: ${partner._id}`);
+    res.status(200).json({
+      success: true,
+      data: partner
+    });
+  },
+
+  deletePartner: async (req, res, next) => {
+    const partner = await Partner.findByIdAndDelete(req.params.id);
+    if (!partner) {
+      return next(new AppError('Partner not found', 404));
+    }
+    logger.info(`Deleted partner: ${partner._id}`);
+    res.status(200).json({
+      success: true,
+      message: 'Partner deleted successfully'
+    });
   }
 };
 

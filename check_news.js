@@ -1,7 +1,7 @@
 
-const http = require('http');
+const https = require('https');
 
-http.get('http://jbrbackend.onrender.com/api/admin/aggregate-news', (res) => {
+https.get('https://jbrbackend.onrender.com/api/admin/aggregate-news', (res) => {
     let data = '';
     res.on('data', (chunk) => data += chunk);
     res.on('end', () => {
