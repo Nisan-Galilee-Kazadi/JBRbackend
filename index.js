@@ -237,6 +237,22 @@ app.get('/health', (_, res) => {
     res.json({ status: 'OK', uptime: process.uptime() });
 });
 
+
+/* =========================
+   DELETE POST (LA SOLUTION)
+========================= */
+app.delete('/api/posts/:id', async (req, res) => {
+    try {
+        const deletedPost = await Post.findByIdAndDelete(req.params.id);
+        if (!deletedPost) {
+            return res.status(404).json({ success: false, message: "Post non trouvé" });
+        }
+        res.json({ success: true, message: "Post supprimé avec succès" });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 /* =========================
    START SERVER
 ========================= */
