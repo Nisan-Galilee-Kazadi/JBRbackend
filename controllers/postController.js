@@ -23,6 +23,25 @@ const postController = {
     });
   },
 
+  updatePost: async (req, res, next) => {
+    const { id } = req.params;
+    
+    const post = await Post.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true
+    });
+    
+    if (!post) {
+      return next(new AppError('Post not found', 404));
+    }
+    
+    logger.info(`Updated post: ${id}`);
+    res.status(200).json({
+      success: true,
+      data: post
+    });
+  },
+
   reactToPost: async (req, res, next) => {
     const { id } = req.params;
     const { type } = req.body;
