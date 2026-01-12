@@ -143,6 +143,15 @@ app.post('/api/posts/:id/comment', async (req, res) => {
     res.json(post);
 });
 
+app.put('/api/posts/:id', async (req, res) => {
+    try {
+        const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json(post);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 /* =========================
    VISITORS
 ========================= */

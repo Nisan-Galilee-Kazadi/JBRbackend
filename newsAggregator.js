@@ -60,7 +60,10 @@ const aggregateNewsFromFeeds = async () => {
         { name: 'FOOT.CD', url: 'https://foot.cd/feed/', category: 'RDC' },
         { name: 'L\'ÉQUIPE', url: 'https://www.lequipe.fr/rss/actu_rss_Football.xml', category: 'International' },
         { name: 'LEOPARDS FOOT', url: 'https://www.leopardsfoot.com/feed/', category: 'Léopards' },
-        { name: 'GOOGLE NEWS RDC', url: 'https://news.google.com/rss/search?q=football+RDC+Leopards&hl=fr&gl=CD&ceid=CD:fr', category: 'Actualité' }
+        { name: 'EUROSPORT', url: 'https://www.eurosport.fr/football/rss.xml', category: 'International' },
+        { name: 'MARCA (Real/Barca)', url: 'https://e00-marca.uecdn.es/rss/futbol/liga-espanola.xml', category: 'Espagne' },
+        { name: 'FOOT MERCATO', url: 'https://www.footmercato.net/feed', category: 'Mercato' },
+        { name: 'GOOGLE NEWS LDC', url: 'https://news.google.com/rss/search?q=Champions+League+Real+Madrid+Barcelona+PSG+Man+City&hl=fr&gl=FR&ceid=FR:fr', category: 'LDC' }
     ];
 
     const footballKeywords = ['football', 'foot', 'ballon', 'mercato', 'ligue', 'match', 'joueur', 'club', 'fifa', 'caf', 'leopards', 'congolais', 'transfert', 'vitesse', 'but', 'attaquant', 'stade'];
