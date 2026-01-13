@@ -10,6 +10,10 @@ const PostSchema = new mongoose.Schema({
         likes: { type: Number, default: 0 },
         hearts: { type: Number, default: 0 }
     },
+    likesTracking: [{
+        userIdentifier: String,
+        createdAt: { type: Date, default: Date.now }
+    }],
     comments: [{
         user: String,
         text: String,

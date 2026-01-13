@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const AppError = require('../middleware/appError');
 const logger = require('../middleware/logger');
+const { v4: uuidv4 } = require('uuid');
 
 const postController = {
   getAllPosts: async (req, res, next) => {
@@ -44,24 +45,47 @@ const postController = {
 
   reactToPost: async (req, res, next) => {
     const { id } = req.params;
-    const { type } = req.body;
+    const { type, userIdentifier } = req.body; // userIdentifier = IP + localStorage ID
 
     const post = await Post.findById(id);
     if (!post) {
       return next(new AppError('Post not found', 404));
     }
 
-    if (post.reactions[type] !== undefined) {
-      post.reactions[type] += 1;
-      await post.save();
-      logger.info(`Post ${id} received ${type} reaction`);
-      res.status(200).json({
-        success: true,
-        data: post
-      });
+    // Initialize likes tracking if not exists
+    if (!post.likesTracking) {
+      post.likesTracking = [];
+    }
+
+    // Check if user already liked this post
+    const existingLike = post.likesTracking.find(like => like.userIdentifier === userIdentifier);
+    
+    if (type === 'likes') {
+      if (existingLike) {
+        // Unlike - remove the like and decrement count
+        post.likesTracking = post.likesTracking.filter(like => like.userIdentifier !== userIdentifier);
+        post.reactions.likes = Math.max(0, (post.reactions?.likes || 0) - 1);
+      } else {
+        // Like - add the like and increment count
+        post.likesTracking.push({
+          userIdentifier,
+          createdAt: new Date()
+        });
+        post.reactions.likes = (post.reactions?.likes || 0) + 1;
+      }
     } else {
       return next(new AppError('Invalid reaction type', 400));
     }
+
+    await post.save();
+    logger.info(`Post ${id} received ${type} reaction from ${userIdentifier}`);
+    res.status(200).json({
+      success: true,
+      data: {
+        ...post.toObject(),
+        isLiked: !existingLike // Return the new state
+      }
+    });
   },
 
   commentOnPost: async (req, res, next) => {
@@ -78,6 +102,7 @@ const postController = {
     }
 
     const newComment = {
+      _id: uuidv4(), // Generate unique ID for each comment
       user,
       text,
       createdAt: new Date(),
