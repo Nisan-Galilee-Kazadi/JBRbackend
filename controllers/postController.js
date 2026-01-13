@@ -66,7 +66,7 @@ const postController = {
 
   commentOnPost: async (req, res, next) => {
     const { id } = req.params;
-    const { user, text } = req.body;
+    const { user, text, replyToCommentId, replyTo, level = 0 } = req.body;
 
     if (!user || !text) {
       return next(new AppError('User and text are required', 400));
@@ -77,7 +77,17 @@ const postController = {
       return next(new AppError('Post not found', 404));
     }
 
-    post.comments.push({ user, text, createdAt: new Date() });
+    const newComment = {
+      user,
+      text,
+      createdAt: new Date(),
+      isReply: replyToCommentId ? true : false,
+      replyTo: replyTo || null,
+      replyToCommentId: replyToCommentId || null,
+      level: level || 0
+    };
+
+    post.comments.push(newComment);
     await post.save();
     logger.info(`New comment added to post ${id}`);
     res.status(200).json({
